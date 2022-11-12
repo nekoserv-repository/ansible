@@ -1,0 +1,22 @@
+---
+- name: update debian host(s)
+  hosts: debian
+  serial: 1
+
+  tasks:
+    - name: update index of available package(s)
+      apt:
+        update_cache: true
+
+    - name: update package(s) to latest version(s)
+      apt:
+        name: "*"
+        state: latest
+
+    - name: check if reboot needed
+      ansible.builtin.raw: lsof / 2>&1 | awk '$4=="DEL"' | cat
+      register: lsof_output
+
+    - name: reboot if needed
+      ansible.builtin.reboot:
+      when: lsof_output.stdout.splitlines()|length > 0
