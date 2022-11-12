@@ -1,0 +1,32 @@
+---
+- name: add ssh keys to host(s)
+  hosts: dns
+  gather_facts: no
+  serial: 1
+  vars:
+    ssh_key_path: ~/.ssh/id_ed25519.pub
+    authorized_keys_path: ~/.ssh/authorized_keys
+    strict_host_checking: "yes"
+
+  tasks:
+    - name: check for local {{ ssh_key_path }}
+      delegate_to: localhost
+      stat:
+        path: "{{ ssh_key_path }}"
+      register: file_stat
+
+    - meta: end_play
+      when: file_stat.stat.exists == false
+
+    - name: check ~/.ssh/known_hosts for {{ inventory_hostname }}
+      local_action: shell ssh-keygen -F {{ inventory_hostname }} 2>/dev/null | cat
+      register: has_entry_in_known_hosts_file
+
+    - name: toggle StrictHostKeyChecking to "no"
+      when: has_entry_in_known_hosts_file.stdout.splitlines()|length == 0
+      set_fact:
+        strict_host_checking: "no"
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+    - name: copy {{ ssh_key_path }} to {{ inventory_hostname }} [ StrictHostKeyChecking={{ strict_host_checking }} ]
+      local_action: shell ssh-copy-id -o StrictHostKeyChecking={{ strict_host_checking }} -i {{ ssh_key_path }} {{ ansible_user }}@{{ inventory_hostname }}
