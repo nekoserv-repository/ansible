@@ -1,0 +1,10 @@
+[all:vars]
+ansible_user = <user>
+
+[debian]
+<machine1>
+<machine2>
+
+[dns]
+<dns1>
+<dns2>
