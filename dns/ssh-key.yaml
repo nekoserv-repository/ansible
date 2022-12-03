@@ -30,3 +30,6 @@
 
     - name: copy {{ ssh_key_path }} to {{ inventory_hostname }} [ StrictHostKeyChecking={{ strict_host_checking }} ]
       local_action: shell ssh-copy-id -o StrictHostKeyChecking={{ strict_host_checking }} -i {{ ssh_key_path }} {{ ansible_user }}@{{ inventory_hostname }}
+
+    - name: run local backup utility (lbu)
+      ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
