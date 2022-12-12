@@ -5,7 +5,7 @@
   serial: 1
   vars:
     ssh_key_path: ~/.ssh/id_ed25519.pub
-    authorized_keys_path: ~/.ssh/authorized_keys
+    authorized_keys_path: /root/.ssh/authorized_keys
     strict_host_checking: "yes"
 
   tasks:
@@ -30,6 +30,9 @@
 
     - name: copy {{ ssh_key_path }} to {{ inventory_hostname }} [ StrictHostKeyChecking={{ strict_host_checking }} ]
       local_action: shell ssh-copy-id -o StrictHostKeyChecking={{ strict_host_checking }} -i {{ ssh_key_path }} {{ ansible_user }}@{{ inventory_hostname }}
+
+    - name: include authorized_keys to apkovl
+      ansible.builtin.raw: lbu include {{ authorized_keys_path }}
 
     - name: run local backup utility (lbu)
       ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
