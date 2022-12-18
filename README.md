@@ -1,8 +1,13 @@
-![ansible](https://repository-images.githubusercontent.com/565076259/3c660ed2-04b9-40ee-8d7d-9fdc85af5453)
+![ansible](https://repository-images.githubusercontent.com/565076259/4f957f08-4bbf-4e70-bb91-ed09ef847422)
+
+<br />
 
 How to use :
 
 - install : sudo apt install --no-install-recommends ansible
-- clone : git clone <this-repo>
-- edit configuration : vi ~/ansible/cfg/hosts
-- run example : ansible-playbook -i ~/ansible/cfg/hosts ~/ansible/dns/update.yaml
+
+- clone : git clone https://github.com/nekoserv-repository/ansible.git
+
+- update configuration : vi ~/ansible/cfg/hosts
+
+- run : ansible-playbook -i ~/ansible/cfg/hosts ~/ansible/dns/update.yaml
