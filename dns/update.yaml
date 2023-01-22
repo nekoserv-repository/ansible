@@ -30,7 +30,7 @@
       ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
 
     - name: check if reboot needed
-      ansible.builtin.raw: lsof / 2>&1 | awk '$4=="DEL"' | cat
+      ansible.builtin.raw: lsof / 2>&1 | awk '$3=="(deleted)"' | cat
       register: lsof_output
 
     - name: reboot if needed
