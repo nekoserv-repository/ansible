@@ -8,6 +8,15 @@
       apt:
         update_cache: true
 
+    - name: check package(s) update(s)
+      ansible.builtin.raw: apt-get -s upgrade | grep '^Inst ' | cat
+      register: pkgs_output
+
+    - name: package(s) to be upgraded
+      ansible.builtin.debug:
+        msg: "{{ pkgs_output.stdout_lines }}"
+      when: pkgs_output.stdout.splitlines()|length > 0
+
     - name: update package(s) to latest version(s)
       apt:
         name: "*"
