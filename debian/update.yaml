@@ -12,6 +12,9 @@
       ansible.builtin.raw: apt-get -s upgrade | grep '^Inst ' | cat
       register: pkgs_output
 
+    - meta: end_play
+      when: pkgs_output.stdout.splitlines()|length == 0
+
     - name: package(s) to be upgraded
       ansible.builtin.debug:
         msg: "{{ pkgs_output.stdout_lines }}"
