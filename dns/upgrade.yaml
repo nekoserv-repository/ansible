@@ -1,0 +1,95 @@
+---
+- name: upgrade alpine host(s)
+  hosts: dns1
+  gather_facts: no
+  serial: 1
+
+  tasks:
+    - name: get VERSION_ID
+      ansible.builtin.raw: . /etc/os-release; echo $VERSION_ID
+      register: VERSION_ID
+
+    - meta: end_play
+      when: VERSION_ID.stdout.splitlines()|length != 1
+
+    - name: get short version
+      ansible.builtin.raw: echo "{{ VERSION_ID.stdout.splitlines()[0] }}" | sed -E 's/([0-9].[0-9][0-9]).*/\1/'
+      register: SHORT_VERSION
+
+    - name: get LBU_MEDIA
+      ansible.builtin.raw: . /etc/lbu/lbu.conf; echo $LBU_MEDIA
+      register: LBU_MEDIA
+
+    - meta: end_play
+      when: LBU_MEDIA.stdout.splitlines()|length != 1
+
+    - name: get ARCH
+      ansible.builtin.raw: cat /etc/apk/arch
+      register: ARCH
+
+    - meta: end_play
+      when: ARCH.stdout.splitlines()|length != 1
+
+    - name: update /etc/apk/repositories
+      ansible.builtin.raw: sed -i -e 's/v{{ SHORT_VERSION.stdout.splitlines()[0] }}/v{{ NEW_VERSION }}/g' /etc/apk/repositories | cat
+
+    - name: update index of available package(s)
+      ansible.builtin.raw: apk update
+
+    - name: check package(s) update(s)
+      ansible.builtin.raw: apk version -l '<'
+      register: pkgs_output
+
+    - name: package(s) to be upgraded
+      ansible.builtin.debug:
+        msg: "{{ pkgs_output.stdout_lines }}"
+
+    - name: upgrading {{ pkgs_output.stdout.splitlines()|length - 1 }} package(s)...
+      ansible.builtin.raw: apk upgrade --available
+
+    - name: run local backup utility (lbu)
+      ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
+
+    - name: remount,rw for /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
+      ansible.builtin.raw: mount -oremount,rw /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
+
+    - name: downloading tar.gz archive
+      ansible.builtin.raw: wget https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{{ ARCH.stdout.splitlines()[0] }}/alpine-rpi-{{ VERSION_ID.stdout.splitlines()[0] }}-{{ ARCH.stdout.splitlines()[0] }}.tar.gz -P /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
+
+    - name: downloading sha256
+      ansible.builtin.raw: wget https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{{ ARCH.stdout.splitlines()[0] }}/alpine-rpi-{{ VERSION_ID.stdout.splitlines()[0] }}-{{ ARCH.stdout.splitlines()[0] }}.tar.gz.sha256 -P /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
+
+    - name: checking sha256 of tar.gz archive
+      ansible.builtin.raw: cd /media/{{ LBU_MEDIA.stdout.splitlines()[0] }} && sha256sum -c *.sha256
+
+    - name: removing previous apk dir
+      ansible.builtin.raw: rm -f /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/apks/{{ ARCH.stdout.splitlines()[0] }}/*
+
+    - name: removing previous cache dir
+      ansible.builtin.raw: rm -f /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/cache/*
+
+    - name: rebuilding apk cache
+      ansible.builtin.raw: apk update && apk cache -v download
+
+    - name: extracting tar.gz
+      ansible.builtin.raw: cd /media/{{ LBU_MEDIA.stdout.splitlines()[0] }} && tar xzf alpine-rpi-{{ VERSION_ID.stdout.splitlines()[0] }}-{{ ARCH.stdout.splitlines()[0] }}.tar.gz
+
+    - name: removing tar.gz and sha256
+      ansible.builtin.raw: rm /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/alpine-rpi*.tar.gz /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/alpine-rpi*.tar.gz.sha256
+
+    - name: sync-ing
+      ansible.builtin.raw: sync
+
+    - name: reboot
+      ansible.builtin.raw: reboot
+      poll: 0
+      ignore_errors: yes
+
+    - name: wait for host to come up
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        state: started
+        delay: 30
+        timeout: 120
+      delegate_to: localhost
