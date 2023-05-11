@@ -47,14 +47,12 @@
       ansible.builtin.raw: lsof / 2>&1 | awk '$3=="(deleted)"' | cat
       register: lsof_output
 
-    - meta: end_play
-      when: lsof_output.stdout.splitlines()|length == 0
-
     - name: reboot
       ansible.builtin.raw: reboot
       poll: 0
       ignore_errors: yes
-
+      when: lsof_output.stdout.splitlines()|length > 0
+      
     - name: wait for host to come up
       wait_for:
         host: "{{ inventory_hostname }}"
@@ -63,6 +61,7 @@
         delay: 30
         timeout: 120
       delegate_to: localhost
+      when: lsof_output.stdout.splitlines()|length > 0
 
     - name: remount,rw for /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
       ansible.builtin.raw: mount -oremount,rw /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
