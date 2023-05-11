@@ -11,3 +11,5 @@ How to use :
 - update configuration : vi ~/ansible/cfg/hosts
 
 - run : ansible-playbook -i ~/ansible/cfg/hosts ~/ansible/dns/update.yaml
+
+- another example : ansible-playbook -i ~/ansible/cfg/hosts ~/ansible/dns/upgrade.yaml --extra-vars NEW_VERSION="3.19"
