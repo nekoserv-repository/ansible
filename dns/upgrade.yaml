@@ -1,6 +1,6 @@
 ---
 - name: upgrade alpine host(s)
-  hosts: dns1
+  hosts: dns
   gather_facts: no
   serial: 1
 
