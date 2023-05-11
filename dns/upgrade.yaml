@@ -16,17 +16,6 @@
       ansible.builtin.raw: echo "{{ VERSION_ID.stdout.splitlines()[0] }}" | sed -E 's/([0-9].[0-9][0-9]).*/\1/'
       register: SHORT_VERSION
 
-    - name: get LBU_MEDIA
-      ansible.builtin.raw: . /etc/lbu/lbu.conf; echo $LBU_MEDIA
-      register: LBU_MEDIA
-
-    - meta: end_play
-      when: LBU_MEDIA.stdout.splitlines()|length != 1
-
-    - name: get ARCH
-      ansible.builtin.raw: cat /etc/apk/arch
-      register: ARCH
-
     - meta: end_play
       when: ARCH.stdout.splitlines()|length != 1
 
@@ -49,37 +38,13 @@
 
     - name: run local backup utility (lbu)
       ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
+    - name: check if reboot needed
+      ansible.builtin.raw: lsof / 2>&1 | awk '$3=="(deleted)"' | cat
+      register: lsof_output
 
-    - name: remount,rw for /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
-      ansible.builtin.raw: mount -oremount,rw /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
-
-    - name: downloading tar.gz archive
-      ansible.builtin.raw: wget https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{{ ARCH.stdout.splitlines()[0] }}/alpine-rpi-{{ VERSION_ID.stdout.splitlines()[0] }}-{{ ARCH.stdout.splitlines()[0] }}.tar.gz -P /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
-
-    - name: downloading sha256
-      ansible.builtin.raw: wget https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{{ ARCH.stdout.splitlines()[0] }}/alpine-rpi-{{ VERSION_ID.stdout.splitlines()[0] }}-{{ ARCH.stdout.splitlines()[0] }}.tar.gz.sha256 -P /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}
-
-    - name: checking sha256 of tar.gz archive
-      ansible.builtin.raw: cd /media/{{ LBU_MEDIA.stdout.splitlines()[0] }} && sha256sum -c *.sha256
-
-    - name: removing previous apk dir
-      ansible.builtin.raw: rm -f /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/apks/{{ ARCH.stdout.splitlines()[0] }}/*
-
-    - name: removing previous cache dir
-      ansible.builtin.raw: rm -f /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/cache/*
-
-    - name: rebuilding apk cache
-      ansible.builtin.raw: apk update && apk cache -v download
-
-    - name: extracting tar.gz
-      ansible.builtin.raw: cd /media/{{ LBU_MEDIA.stdout.splitlines()[0] }} && tar xzf alpine-rpi-{{ VERSION_ID.stdout.splitlines()[0] }}-{{ ARCH.stdout.splitlines()[0] }}.tar.gz
-
-    - name: removing tar.gz and sha256
-      ansible.builtin.raw: rm /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/alpine-rpi*.tar.gz /media/{{ LBU_MEDIA.stdout.splitlines()[0] }}/alpine-rpi*.tar.gz.sha256
-
-    - name: sync-ing
-      ansible.builtin.raw: sync
-
+    - meta: end_play
+      when: lsof_output.stdout.splitlines()|length == 0
+      
     - name: reboot
       ansible.builtin.raw: reboot
       poll: 0
@@ -93,3 +58,4 @@
         delay: 30
         timeout: 120
       delegate_to: localhost
+
