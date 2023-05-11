@@ -2,9 +2,7 @@
 ansible_user = <user>
 
 [debian]
-<machine1>
-<machine2>
+node[1:10].local
 
 [dns]
-<dns1>
-<dns2>
+dns[1:2].local
