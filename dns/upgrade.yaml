@@ -16,9 +16,6 @@
       ansible.builtin.raw: echo "{{ VERSION_ID.stdout.splitlines()[0] }}" | sed -E 's/([0-9].[0-9][0-9]).*/\1/'
       register: SHORT_VERSION
 
-    - meta: end_play
-      when: ARCH.stdout.splitlines()|length != 1
-
     - name: update /etc/apk/repositories
       ansible.builtin.raw: sed -i -e 's/v{{ SHORT_VERSION.stdout.splitlines()[0] }}/v{{ NEW_VERSION }}/g' /etc/apk/repositories | cat
 
