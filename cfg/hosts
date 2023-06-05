@@ -4,5 +4,8 @@ ansible_user = <user>
 [debian]
 node[1:10].local
 
+[docker]
+node[1:5].local		ansible_user=docker
+
 [dns]
 dns[1:2].local
