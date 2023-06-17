@@ -9,21 +9,21 @@
       ansible.builtin.raw: . /etc/os-release; echo $VERSION_ID
       register: VERSION_ID
 
-    - meta: end_play
+    - meta: end_host
       when: VERSION_ID.stdout.splitlines()|length != 1
 
     - name: get LBU_MEDIA
       ansible.builtin.raw: . /etc/lbu/lbu.conf; echo $LBU_MEDIA
       register: LBU_MEDIA
 
-    - meta: end_play
+    - meta: end_host
       when: LBU_MEDIA.stdout.splitlines()|length != 1
 
     - name: get ARCH
       ansible.builtin.raw: cat /etc/apk/arch
       register: ARCH
 
-    - meta: end_play
+    - meta: end_host
       when: ARCH.stdout.splitlines()|length != 1
 
     - name: update index of available package(s)

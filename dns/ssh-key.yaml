@@ -15,7 +15,7 @@
         path: "{{ ssh_key_path }}"
       register: file_stat
 
-    - meta: end_play
+    - meta: end_host
       when: file_stat.stat.exists == false
 
     - name: check ~/.ssh/known_hosts for {{ inventory_hostname }}
