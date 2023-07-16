@@ -1,0 +1,15 @@
+---
+# file: update.yml
+
+- hosts: debian
+  serial: 1
+  roles:
+    - debian-update
+    - debian-reboot
+
+- hosts: alpine
+  gather_facts: no
+  serial: 1
+  roles:
+    - alpine-update
+    - alpine-reboot

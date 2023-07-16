@@ -1,0 +1,28 @@
+---
+- name: stop all services
+  community.docker.docker_compose:
+    project_src: "{{ docker_dir }}"
+    state: absent
+    remove_orphans: true
+
+- name: prune everything
+  community.docker.docker_prune:
+    containers: true
+    images: true
+    images_filters:
+      dangling: false
+    networks: true
+    volumes: true
+    builder_cache: true
+
+- name: "rebuild {{ first_service }}"
+  community.docker.docker_compose:
+    project_src: "{{ docker_dir }}"
+    build: true
+    services: "{{ first_service }}"
+
+- name: rebuild all (please wait)
+  community.docker.docker_compose:
+    project_src: "{{ docker_dir }}"
+    build: true
+    services: "{{ services_name }}"

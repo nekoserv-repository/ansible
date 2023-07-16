@@ -1,0 +1,8 @@
+---
+# file: docker-rebuild.yml
+
+- hosts: docker
+  vars:
+    - ansible_user: docker
+  roles:
+    - docker-rebuild

@@ -1,0 +1,14 @@
+---
+- name: reboot now
+  ansible.builtin.raw: reboot
+  poll: 0
+  ignore_errors: yes
+
+- name: wait for host to come up
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    port: 22
+    state: started
+    delay: 30
+    timeout: 120
+  delegate_to: localhost

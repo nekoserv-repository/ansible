@@ -1,0 +1,5 @@
+---
+# file: group_vars/docker.yml
+docker_dir: ~/docker
+first_service: email-purge
+services_name: main-services
