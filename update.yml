@@ -1,15 +1,22 @@
 ---
 # file: update.yml
 
+## updates in parallel
+- hosts: alpine
+  gather_facts: no
+  roles:
+    - alpine-update
 - hosts: debian
-  serial: 1
   roles:
     - debian-update
-    - debian-reboot
 
+## reboot checks in serial
 - hosts: alpine
   gather_facts: no
   serial: 1
   roles:
-    - alpine-update
     - alpine-reboot
+- hosts: debian
+  serial: 1
+  roles:
+    - debian-reboot
