@@ -4,24 +4,25 @@
 
 - name: check package(s) update(s)
   ansible.builtin.raw: apk version -l '<'
+  changed_when: pkgs_output.stdout.splitlines()|length > 1
+  failed_when: pkgs_output.stdout.splitlines()|length == 0
   register: pkgs_output
 
 - name: nothing to upgrade
-  ansible.builtin.raw: echo
-  when: pkgs_output.stdout.splitlines()|length == 1
-
-- meta: end_host
+  ansible.builtin.meta: end_host
   when: pkgs_output.stdout.splitlines()|length == 1
 
 - name: package(s) to be upgraded
   ansible.builtin.debug:
     msg: "{{ pkgs_output.stdout_lines }}"
+  changed_when: false
 
 - name: upgrading {{ pkgs_output.stdout.splitlines()|length - 1 }} package(s)...
   ansible.builtin.raw: apk upgrade
 
 - name: check if adhosts.conf exists
   ansible.builtin.raw: ls /etc/unbound/adhosts.conf > /dev/null | cat
+  changed_when: false
   register: stat_result
 
 - name: run local backup utility (lbu)

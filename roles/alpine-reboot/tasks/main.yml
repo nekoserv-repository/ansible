@@ -1,9 +1,11 @@
 ---
 - name: check if reboot needed
   ansible.builtin.raw: lsof / 2>&1 | awk '$3=="(deleted)"' | cat
+  changed_when: false
   register: lsof_output
 
-- meta: end_host
+- name: reboot not required
+  ansible.builtin.meta: end_host
   when: lsof_output.stdout.splitlines()|length == 0
 
 - name: reboot now

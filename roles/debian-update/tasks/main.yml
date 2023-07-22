@@ -3,28 +3,31 @@
   apt:
     update_cache: true
 
-- name: check package(s) update(s)
+- name: check package(s) upgrade(s)
   ansible.builtin.raw: apt-get -s upgrade | grep '^Inst ' | cat
+  changed_when: upd_output.stdout.splitlines()|length > 0
   register: upd_output
 
 - name: check dist-upgrade(s)
   ansible.builtin.raw: apt-get -s dist-upgrade | grep '^Inst ' | cat
+  changed_when: upgd_output.stdout.splitlines()|length > 0
   register: upgd_output
 
-- meta: end_host
+- name: nothing to upgrade
+  ansible.builtin.meta: end_host
   when:
     - upd_output.stdout.splitlines()|length == 0
     - upgd_output.stdout.splitlines()|length == 0
 
-- name: package(s) to be updated
+- name: package(s) to be upgraded
   ansible.builtin.debug:
     msg: "{{ upd_output.stdout_lines }}"
-  when: upd_output.stdout.splitlines()|length > 0
+  changed_when: false
 
 - name: package(s) to be upgraded
   ansible.builtin.debug:
     msg: "{{ upgd_output.stdout_lines }}"
-  when: upgd_output.stdout.splitlines()|length > 0
+  changed_when: false
 
 - name: updating package(s) to latest version(s)
   apt:
