@@ -13,7 +13,7 @@
   poll: 0
   ignore_errors: yes
 
-- name: wait for host to come up
+- name: wait for {{ inventory_hostname }} to come up
   wait_for:
     host: "{{ inventory_hostname }}"
     port: 22

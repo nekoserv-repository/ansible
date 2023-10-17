@@ -13,5 +13,5 @@
   ansible.builtin.meta: end_host
   when: (lsof_output.stdout.splitlines()|length == 0) and (kernel_output.stdout.splitlines()|length == 0)
 
-- name: rebooting
+- name: rebooting {{ inventory_hostname }}
   ansible.builtin.reboot:
