@@ -52,7 +52,7 @@
       poll: 0
       ignore_errors: yes
       when: lsof_output.stdout.splitlines()|length > 0
-      
+
     - name: wait for host to come up
       wait_for:
         host: "{{ inventory_hostname }}"
