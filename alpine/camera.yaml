@@ -67,7 +67,7 @@
 
         - name: fetch go2rtc
           block:
-            - name: stop go2rtc if present
+            - name: stop go2rtc
               ansible.builtin.raw: service go2rtc stop | cat
 
             - name: get go2rtc version
@@ -122,7 +122,7 @@
           ansible.builtin.raw: echo -e "streams:\n  cam\x3A    exec:libcamera-vid --nopreview -t 0 --width 1280 --height 720 --framerate 20 --inline -o -" > /etc/go2rtc.yaml
 
         - name: create go2rtc initscript
-          ansible.builtin.raw: echo -e "#!/sbin/openrc-run\nname=\"go2rtc daemon\"\ncommand_background=\"yes\"\ndepend() {\n    need net\n}\nstart() {\n    /media/{{ lbu_media }}/go2rtc -config /etc/go2rtc.yaml 2>&1 > /dev/null &\n}\nstop() {\n    pkill -x /media/{{ lbu_media }}/go2rtc\n}" > /etc/init.d/go2rtc
+          ansible.builtin.raw: echo -e "#!/sbin/openrc-run\nname=\"go2rtc daemon\"\ncommand_background=\"yes\"\ndepend() {\n    need net\n}\nstart() {\n    /media/{{ lbu_media }}/go2rtc -config /etc/go2rtc.yaml 2>&1 > /dev/null &\n}\nstop() {\n    pkill -x /media/{{ lbu_media }}/go2rtc | cat\n}" > /etc/init.d/go2rtc
 
         - name: set chmod
           ansible.builtin.raw: chmod 0700 /etc/init.d/go2rtc
