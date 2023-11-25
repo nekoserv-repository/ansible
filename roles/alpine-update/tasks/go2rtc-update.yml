@@ -1,0 +1,15 @@
+---
+- name: remount,rw for /media/{{ lbu_media }}
+  ansible.builtin.raw: mount -oremount,rw /media/{{ lbu_media }}
+
+- name: stop go2rtc
+  ansible.builtin.raw: service go2rtc stop | cat
+
+- name: "download go2rtc v{{ remote_version.stdout.splitlines()[0] }}"
+  ansible.builtin.raw: wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ remote_version.stdout.splitlines()[0] }}/go2rtc_linux_armv6 -O /media/{{ lbu_media }}/go2rtc
+
+- name: remount,ro for /media/{{ lbu_media }}
+  ansible.builtin.raw: mount -oremount,ro /media/{{ lbu_media }}
+
+- name: restart go2rtc
+  ansible.builtin.raw: service go2rtc restart

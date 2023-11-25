@@ -1,0 +1,9 @@
+---
+- name: check if go2rtc.yaml exists
+  ansible.builtin.raw: ls /etc/go2rtc.yaml > /dev/null | cat
+  changed_when: false
+  register: stat_result
+
+- name: go2rtc.yaml is installed
+  ansible.builtin.include_tasks: go2rtc-check-update.yml
+  when: stat_result.stdout_lines|length == 0
