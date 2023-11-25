@@ -11,19 +11,16 @@
   serial: 1
 
   tasks:
-    - name: disable wireless powersave
+    - name: disable wireless power_save
       block:
-        - name: check if wireless-power is set
-          ansible.builtin.raw: grep "^wireless-power " /etc/network/interfaces | cat
-          register: WIRELESS_POWER
+        - name: set wireless power_save to off
+          ansible.builtin.raw: iw wlan0 set power_save off
 
-        - name: update wireless-power
-          ansible.builtin.raw: sed -i -e 's/^wireless-power .*/wireless-power off/g' /etc/network/interfaces
-          when: WIRELESS_POWER.stdout.splitlines()|length == 1
+        - name: add wlan power_save rule
+          ansible.builtin.raw: echo 'ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*", RUN+="/usr/sbin/iw $name set power_save off"' > /etc/udev/rules.d/powersave.rules
 
-        - name: set wireless-power
-          ansible.builtin.raw: echo -e "wireless-power off" >> /etc/network/interfaces
-          when: WIRELESS_POWER.stdout.splitlines()|length == 0
+        - name: add to lbu
+          ansible.builtin.raw: lbu add /etc/udev/rules.d/powersave.rules
 
 
     - name: disable IPv6
