@@ -9,5 +9,5 @@
   register: pkgs_output
 
 - name: system update
-  when: pkgs_output.stdout.splitlines()|length == 0
+  when: pkgs_output.stdout.splitlines()|length > 1
   ansible.builtin.include_tasks: system-update.yml
