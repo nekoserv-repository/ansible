@@ -33,14 +33,29 @@
     - name: upgrading {{ pkgs_output.stdout.splitlines()|length - 1 }} package(s)...
       ansible.builtin.raw: apk upgrade --available
 
+    - name: check if lbu is configured
+      ansible.builtin.raw: grep ^LBU_MEDIA /etc/lbu/lbu.conf | cat
+      register: lbu_configured
+
     - name: check if adhosts.conf exists
       ansible.builtin.raw: ls /etc/unbound/adhosts.conf > /dev/null | cat
       changed_when: false
       register: stat_result
 
-    - name: run local backup utility (lbu)
-      ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
-      when: stat_result.stdout_lines|length == 0
+    - name: lbu backup if configured
+      when: lbu_configured.stdout.splitlines()|length > 0
+      block:
+        - name: move file(s) and run local backup utility (lbu)
+          ansible.builtin.raw: |
+            mv /etc/unbound/adhosts.conf /tmp/adhosts.conf;
+            touch /etc/unbound/adhosts.conf;
+            lbu ci;
+            mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
+          when: stat_result.stdout_lines|length == 0
+
+        - name: run local backup utility (lbu) if configured
+          ansible.builtin.raw: lbu ci
+          when: stat_result.stdout_lines|length > 0
 
     - name: check if reboot needed
       ansible.builtin.raw: lsof / 2>&1 | awk '$3=="(deleted)"' | cat
