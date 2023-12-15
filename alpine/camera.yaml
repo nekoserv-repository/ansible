@@ -17,7 +17,20 @@
           ansible.builtin.raw: service crond stop
 
         - name: stop crond on boot
-          ansible.builtin.raw: rc-update del crond
+          ansible.builtin.raw: rc-update del crond | cat
+
+
+    - name: CPU governor
+      block:
+        - name: create cpufreq script
+          ansible.builtin.raw: echo -e '#!/bin/sh\n\n# Set the governor to ondemand for all processors\nfor cpu in /sys/devices/system/cpu/cpufreq/policy*; do\n  echo ondemand > ${cpu}/scaling_governor\ndone\n\n# Reduce the boost threshold to 80%\necho 80 > /sys/devices/system/cpu/cpufreq/ondemand/up_threshold' > /etc/local.d/cpufreq.start
+
+        - name: make it executable
+          ansible.builtin.raw: chmod 0700 /etc/local.d/cpufreq.start
+
+        - name: add to boot
+          ansible.builtin.raw: rc-update add local default
+
 
     - name: disable wireless power_save
       block:
@@ -85,6 +98,7 @@
         - name: remount,ro for /media/{{ lbu_media }}
           ansible.builtin.raw: mount -oremount,ro /media/{{ lbu_media }}
 
+
     - name: setup v4l2
       block:
         - name: v4l2 module configuration
@@ -92,6 +106,7 @@
 
         - name: add v4l2 to lbu
           ansible.builtin.raw: lbu add /etc/modules-load.d/rpi-camera.conf
+
 
     - name: apk stuff
       block:
@@ -122,6 +137,7 @@
         - name: setup udev
           ansible.builtin.raw: setup-devd udev
 
+
     - name: go2rtc initscript
       block:
         - name: create go2rtc.yaml
@@ -144,6 +160,7 @@
 
         - name: sync
           ansible.builtin.raw: sync
+
 
     - name: reboot
       block:
