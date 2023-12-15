@@ -11,6 +11,14 @@
   serial: 1
 
   tasks:
+    - name: disable crond
+      block:
+        - name: stop crond
+          ansible.builtin.raw: service crond stop
+
+        - name: stop crond on boot
+          ansible.builtin.raw: rc-update del crond
+
     - name: disable wireless power_save
       block:
         - name: set wireless power_save to off
