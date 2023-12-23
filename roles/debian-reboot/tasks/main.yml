@@ -1,6 +1,6 @@
 ---
 - name: reboot check for apps
-  ansible.builtin.raw: lsof / 2>&1 | awk '$4=="DEL"' | cat
+  ansible.builtin.raw: lsof / 2>&1 | awk '$10=="(deleted)"' | cat
   changed_when: false
   register: lsof_output
 
