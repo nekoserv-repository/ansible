@@ -11,6 +11,15 @@
   serial: 1
 
   tasks:
+    - name: disable SSH password authentication
+      block:
+        - name: set PasswordAuthentication to 'no'
+          ansible.builtin.raw: sed -i -e 's/^#PasswordAuthentication.*/PasswordAuthentication no/g' /etc/ssh/sshd_config
+
+        - name: restarting OpenSSH
+          ansible.builtin.raw: rc-service sshd restart
+
+
     - name: disable crond
       block:
         - name: stop crond
