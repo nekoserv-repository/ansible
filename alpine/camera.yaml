@@ -70,16 +70,30 @@
 
     - name: lbu media stuff
       block:
+        - name: enable community repository
+          ansible.builtin.raw: sed -i -e "/alpine\/v\(.*\)community/ s/# *//" /etc/apk/repositories;
+
         - name: get $LBU_MEDIA location
           ansible.builtin.raw: . /etc/lbu/lbu.conf; echo $LBU_MEDIA
           register: LBU_MEDIA
 
+        - name: get current CPU arch
+          ansible.builtin.raw: cat /etc/apk/arch
+          register: ARCH
+
         - meta: end_host
           when: LBU_MEDIA.stdout.splitlines()|length != 1
 
-        - name: set $LBU_MEDIA fact
+        - meta: end_host
+          when: ARCH.stdout.splitlines()|length != 1
+
+        - name: set lbu_media fact
           set_fact:
               lbu_media: "{{ LBU_MEDIA.stdout.splitlines()[0] }}"
+
+        - name: set arch fact
+          set_fact:
+              arch: "{{ ARCH.stdout.splitlines()[0] }}"
 
         - name: remount,rw for /media/{{ lbu_media }}
           ansible.builtin.raw: mount -oremount,rw /media/{{ lbu_media }}
@@ -104,6 +118,15 @@
             - name: "download go2rtc v{{ go2rtc_version.stdout.splitlines()[0] }}"
               ansible.builtin.raw: wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ go2rtc_version.stdout.splitlines()[0] }}/go2rtc_linux_armv6 -O /media/{{ lbu_media }}/go2rtc
 
+        - name: remove previous versions
+          ansible.builtin.raw: rm -f /media/{{ lbu_media }}/apks/{{ arch }}/rpicam*.apk;
+
+        - name: download rpicam-lib
+          ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.1.0.20231122-r0.apk -O /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-lib-0.1.0.20231122-r0.apk;
+
+        - name: download rpicam-apps
+          ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.4.1-r0.apk -O /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-apps-1.4.1-r0.apk;
+
         - name: remount,ro for /media/{{ lbu_media }}
           ansible.builtin.raw: mount -oremount,ro /media/{{ lbu_media }}
 
@@ -117,28 +140,19 @@
           ansible.builtin.raw: lbu add /etc/modules-load.d/rpi-camera.conf
 
 
-    - name: apk stuff
+    - name: install camera software
       block:
-        - name: enable community repository
-          ansible.builtin.raw: sed -i -e "/alpine\/v\(.*\)community/ s/# *//" /etc/apk/repositories;
-
         - name: apk update
           ansible.builtin.raw: apk update
 
         - name: setup apk cache
           ansible.builtin.raw: setup-apkcache /media/{{ lbu_media }}/cache
 
+        - name: install rpicam-lib
+          ansible.builtin.raw: apk add --allow-untrusted  /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-lib-0.1.0.20231122-r0.apk;
 
-    - name: install libcamera-apps
-      block:
-        - name: download libcamera-apps
-          ansible.builtin.raw: wget https://raw.githubusercontent.com/nekoserv-repository/packages/main/alpinelinux/libcamera-apps-1.2.1-r0.apk -O /tmp/libcamera-apps-1.2.1-r0.apk
-
-        - name: install libcamera-apps
-          ansible.builtin.raw: apk add --allow-untrusted /tmp/libcamera-apps-1.2.1-r0.apk
-
-        - name: install libcamera-raspberrypi
-          ansible.builtin.raw: apk add libcamera-raspberrypi
+        - name: install rpicam-apps
+          ansible.builtin.raw: apk add --allow-untrusted  /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-apps-1.4.1-r0.apk;
 
         - name: install tools
           ansible.builtin.raw: apk add nano htop
@@ -150,7 +164,7 @@
     - name: go2rtc initscript
       block:
         - name: create go2rtc.yaml
-          ansible.builtin.raw: echo -e "streams:\n  cam\x3A    exec:libcamera-vid --nopreview -t 0 --width 1280 --height 720 --framerate 20 --inline -o -" > /etc/go2rtc.yaml
+          ansible.builtin.raw: echo -e "streams:\n  cam\x3A    exec:rpicam-vid --nopreview -t 0 --width 1280 --height 720 --framerate 20 --inline -o -" > /etc/go2rtc.yaml
 
         - name: create go2rtc initscript
           ansible.builtin.raw: echo -e "#!/sbin/openrc-run\nname=\"go2rtc daemon\"\ncommand_background=\"yes\"\ndepend() {\n    need net\n}\nstart() {\n    /media/{{ lbu_media }}/go2rtc -config /etc/go2rtc.yaml 2>&1 > /dev/null &\n}\nstop() {\n    pkill -x /media/{{ lbu_media }}/go2rtc | cat\n}" > /etc/init.d/go2rtc
