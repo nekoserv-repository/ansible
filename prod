@@ -1,6 +1,9 @@
 [alpine]
 node[1:5].local
 
+[camera]
+node[1:5].local
+
 [debian]
 node[1:10].local
 

@@ -6,7 +6,7 @@
 #   umount /dev/sda1
 ---
 - name: camera setup for alpine host(s)
-  hosts: node.local
+  hosts: camera
   gather_facts: no
   serial: 1
 
@@ -155,7 +155,7 @@
           ansible.builtin.raw: apk add --allow-untrusted  /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-apps-1.4.1-r0.apk;
 
         - name: install tools
-          ansible.builtin.raw: apk add nano htop
+          ansible.builtin.raw: apk add nano htop dosfstools
 
         - name: setup udev
           ansible.builtin.raw: setup-devd udev
