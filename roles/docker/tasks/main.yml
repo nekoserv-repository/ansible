@@ -15,14 +15,7 @@
     volumes: true
     builder_cache: true
 
-- name: "rebuild {{ first_service }}"
+- name: pull and (re)create services
   community.docker.docker_compose:
     project_src: "{{ docker_dir }}"
-    build: true
-    services: "{{ first_service }}"
-
-- name: rebuild all (please wait)
-  community.docker.docker_compose:
-    project_src: "{{ docker_dir }}"
-    build: true
-    services: "{{ services_name }}"
+    services: "{{ service_name }}"
