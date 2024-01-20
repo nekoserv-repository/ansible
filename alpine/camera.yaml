@@ -118,17 +118,56 @@
             - name: "download go2rtc v{{ go2rtc_version.stdout.splitlines()[0] }}"
               ansible.builtin.raw: wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ go2rtc_version.stdout.splitlines()[0] }}/go2rtc_linux_armv6 -O /media/{{ lbu_media }}/go2rtc
 
-        - name: remove previous versions
-          ansible.builtin.raw: rm -f /media/{{ lbu_media }}/apks/{{ arch }}/rpicam*.apk;
 
-        - name: download rpicam-lib
-          ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.1.0.20231122-r0.apk -O /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-lib-0.1.0.20231122-r0.apk;
+        - name: local apk repository
+          block:
+            - name: create local repo directory
+              ansible.builtin.raw: |
+                rm -rf /media/{{ lbu_media }}/local-apks-repo/;
+                mkdir -p /media/{{ lbu_media }}/local-apks-repo/{{ arch }};
 
-        - name: download rpicam-apps
-          ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.4.1-r0.apk -O /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-apps-1.4.1-r0.apk;
+            - name: remove local-apks-repo if present in /etc/apk/repositories
+              ansible.builtin.raw: sed -i -e '/local-apks-repo/d' /etc/apk/repositories
+
+            - name: add local-apks-repo /etc/apk/repositories
+              ansible.builtin.raw: echo "/media/{{ lbu_media }}/local-apks-repo" >> /etc/apk/repositories
+
+            - name: remove previous versions
+              ansible.builtin.raw: rm -f /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/*.apk;
+
+            - name: download rpicam-lib
+              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.1.0.20231122-r0.apk -O /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/rpicam-lib-0.1.0.20231122-r0.apk;
+
+            - name: download rpicam-apps
+              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.4.1-r0.apk -O /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/rpicam-apps-1.4.1-r0.apk;
+
+            - name: create APK index
+              block:
+                - name: generate APKINDEX.tar.gz
+                  ansible.builtin.raw: |
+                    apk index -o APKINDEX.unsigned.tar.gz /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/*.apk;
+                    mv APKINDEX.unsigned.tar.gz /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/APKINDEX.tar.gz;
+
+                - name: install abuild
+                  ansible.builtin.raw: apk add --no-cache abuild
+
+                - name: remove previous keys and new ones (this is SLOW!)
+                  ansible.builtin.raw: |
+                    rm -rf ~/.abuild/;
+                    abuild-keygen -a -i -n 2>/dev/null | cat;
+
+                - name: sign APKINDEX.tar.gz
+                  ansible.builtin.raw: abuild-sign -k /root/.abuild/root-*.rsa /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/APKINDEX.tar.gz
+
+                - name: trust keys
+                  ansible.builtin.raw: cp /root/.abuild/root-*.rsa.pub /etc/apk/keys/
+
+                - name: remove abuild
+                  ansible.builtin.raw: apk del --purge abuild
 
         - name: remount,ro for /media/{{ lbu_media }}
           ansible.builtin.raw: mount -oremount,ro /media/{{ lbu_media }}
+
 
 
     - name: setup v4l2
@@ -145,16 +184,17 @@
         - name: apk update
           ansible.builtin.raw: apk update
 
-        - name: setup apk cache
-          ansible.builtin.raw: setup-apkcache /media/{{ lbu_media }}/cache
+#        - name: setup apk cache
+#          ansible.builtin.raw: setup-apkcache /media/{{ lbu_media }}/cache
 
         - name: install rpicam-lib
-          ansible.builtin.raw: apk add --allow-untrusted  /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-lib-0.1.0.20231122-r0.apk;
+          ansible.builtin.raw: apk add rpicam-lib
 
         - name: install rpicam-apps
-          ansible.builtin.raw: apk add --allow-untrusted  /media/{{ lbu_media }}/apks/{{ arch }}/rpicam-apps-1.4.1-r0.apk;
+          ansible.builtin.raw: apk add rpicam-apps
 
-        - name: install tools
+
+        - name: install some tools
           ansible.builtin.raw: apk add nano htop dosfstools
 
         - name: setup udev
