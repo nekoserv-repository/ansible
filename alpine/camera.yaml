@@ -136,22 +136,25 @@
               ansible.builtin.raw: rm -f /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/*.apk;
 
             - name: download rpicam-lib
-              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.2.0.20240215-r0.apk -O /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/rpicam-lib-0.2.0.20240215-r0.apk;
+              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.2.0.20240418-r0.apk -P /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/
 
             - name: download rpicam-apps
-              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.4.3-r0.apk -O /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/rpicam-apps-1.4.3-r0.apk;
+              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.4.4-r0.apk -P /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/
 
             - name: create APK index
               block:
                 - name: generate APKINDEX.tar.gz
                   ansible.builtin.raw: |
-                    apk index -o APKINDEX.unsigned.tar.gz /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/*.apk;
-                    mv APKINDEX.unsigned.tar.gz /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/APKINDEX.tar.gz;
+                    apk index -o /tmp/APKINDEX.unsigned.tar.gz --allow-untrusted /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/*.apk;
+                    mv /tmp/APKINDEX.unsigned.tar.gz /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/APKINDEX.tar.gz;
 
                 - name: install abuild
                   ansible.builtin.raw: apk add --no-cache abuild
 
-                - name: remove previous keys and new ones (this is SLOW!)
+                - name: remove previous keys
+                  ansible.builtin.raw: rm -f /etc/apk/keys/root-*.pub
+
+                - name: generate new keys (this is SLOW!)
                   ansible.builtin.raw: |
                     rm -rf ~/.abuild/;
                     abuild-keygen -a -i -n 2>/dev/null | cat;
