@@ -203,11 +203,25 @@
         - name: setup udev
           ansible.builtin.raw: setup-devd udev
 
+    - name: setup camera script
+      block:
+        - name: init. camera script
+          ansible.builtin.raw: |
+            echo "#!/bin/sh" > /usr/local/bin/camera
+            echo "pkill /usr/libexec/libcamera/raspberrypi_ipa_proxy" >> /usr/local/bin/camera
+            echo "exec rpicam-vid --nopreview -t 0 --width 1280 --height 720 --framerate 20 --inline -o - 2>/dev/null" >> /usr/local/bin/camera
+
+        - name: chmod camera script
+          ansible.builtin.raw: chmod 0700 /usr/local/bin/camera
+
+        - name: add to lbu
+          ansible.builtin.raw: lbu add /usr/local/bin/camera
+
 
     - name: go2rtc initscript
       block:
         - name: create go2rtc.yaml
-          ansible.builtin.raw: echo -e "streams:\n  cam\x3A    exec:rpicam-vid --nopreview -t 0 --width 1280 --height 720 --framerate 20 --inline -o -" > /etc/go2rtc.yaml
+          ansible.builtin.raw: echo -e "streams:\n  cam\x3A    exec:/usr/local/bin/camera" > /etc/go2rtc.yaml
 
         - name: create go2rtc initscript
           ansible.builtin.raw: echo -e "#!/sbin/openrc-run\nname=\"go2rtc daemon\"\ncommand_background=\"yes\"\ndepend() {\n    need net\n}\nstart() {\n    /media/{{ lbu_media }}/go2rtc -config /etc/go2rtc.yaml 2>&1 > /dev/null &\n}\nstop() {\n    pkill -x /media/{{ lbu_media }}/go2rtc | cat\n}" > /etc/init.d/go2rtc
