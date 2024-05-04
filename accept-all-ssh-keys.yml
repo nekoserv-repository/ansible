@@ -1,0 +1,47 @@
+---
+# file: accept-all-ssh-keys.yml
+
+###
+## DANGER ! here be dragons - use with CAUTION
+####
+
+## Please read use cases :
+## - UNknown host : allow the key
+## - known host :
+##   - but key has CHANGED : remove existing keys, allow the NEW one
+##   - keys has not changed : do nothing
+
+- name: accept new SSH keys
+  hosts: all
+  gather_facts: no
+  tasks:
+
+    - name: remove old SSH keys and accept new ones
+      delegate_to: localhost
+      block:
+
+      - name: list local SSH keys
+        ansible.builtin.raw: ssh-keygen -H -F {{ inventory_hostname }} | awk '/ed25519/ { print($3) }'
+        register: local_ssh_keys
+
+      - name: no local keys, adding one
+        when: local_ssh_keys.stdout.splitlines()|length == 0
+        ansible.builtin.raw: ssh-keyscan -H {{ inventory_hostname }} | grep ed25519 >> ~/.ssh/known_hosts
+
+      - name: there are SSH keys for this host
+        when: local_ssh_keys.stdout.splitlines()|length > 0
+        block:
+
+        - name: get SSH host key
+          ansible.builtin.raw: ssh-keyscan -H {{ inventory_hostname }} 2>&1 | grep ed25519
+          register: remote_ssh_key
+
+        - name: no matching keys
+          when: "remote_ssh_key.stdout_lines[0].split(' ')[-1] not in local_ssh_keys.stdout_lines"
+          block:
+
+          - name: removes all SSH keys for this host
+            ansible.builtin.raw: ssh-keygen -R {{ inventory_hostname }}
+
+          - name: add new SSH key
+            ansible.builtin.raw: echo "{{ remote_ssh_key.stdout_lines[0] }}" >> ~/.ssh/known_hosts
