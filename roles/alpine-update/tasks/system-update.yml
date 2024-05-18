@@ -4,14 +4,14 @@
     msg: "{{ pkgs_output.stdout_lines }}"
   changed_when: false
 
-- name: upgrading {{ pkgs_output.stdout.splitlines()|length - 1 }} package(s)...
+- name: upgrading packages
   ansible.builtin.raw: apk upgrade
 
 - name: check if adhosts.conf exists
-  ansible.builtin.raw: ls /etc/unbound/adhosts.conf > /dev/null | cat
+  ansible.builtin.raw: ls /etc/unbound/adhosts.conf 2> /dev/null | cat
   changed_when: false
   register: stat_result
 
 - name: run local backup utility (lbu)
   ansible.builtin.raw: mv /etc/unbound/adhosts.conf /tmp/adhosts.conf ; touch /etc/unbound/adhosts.conf ; lbu ci ; mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
-  when: stat_result.stdout_lines|length == 0
+  when: stat_result.stdout_lines|length == 1
