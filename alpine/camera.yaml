@@ -47,7 +47,9 @@
           ansible.builtin.raw: iw wlan0 set power_save off
 
         - name: add wlan power_save rule
-          ansible.builtin.raw: echo 'ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*", RUN+="/usr/sbin/iw $name set power_save off"' > /etc/udev/rules.d/powersave.rules
+          ansible.builtin.raw: |
+            mkdir -p /etc/udev/rules.d/;
+            echo 'ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*", RUN+="/usr/sbin/iw $name set power_save off"' > /etc/udev/rules.d/powersave.rules
 
         - name: add to lbu
           ansible.builtin.raw: lbu add /etc/udev/rules.d/powersave.rules
