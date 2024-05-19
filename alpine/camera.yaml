@@ -23,7 +23,7 @@
     - name: disable crond
       block:
         - name: stop crond
-          ansible.builtin.raw: service crond stop
+          ansible.builtin.raw: rc-service crond stop
 
         - name: stop crond on boot
           ansible.builtin.raw: rc-update del crond | cat
@@ -109,7 +109,7 @@
         - name: fetch go2rtc
           block:
             - name: stop go2rtc
-              ansible.builtin.raw: service go2rtc stop | cat
+              ansible.builtin.raw: rc-service go2rtc stop | cat
 
             - name: get go2rtc version
               ansible.builtin.raw: wget -q "https://api.github.com/repos/AlexxIT/go2rtc/releases/latest" -O- | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | awk '{print(substr($1,2))}'
