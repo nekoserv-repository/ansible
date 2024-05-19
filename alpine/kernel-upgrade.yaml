@@ -45,7 +45,7 @@
       register: lbu_configured
 
     - name: check if adhosts.conf exists
-      ansible.builtin.raw: ls /etc/unbound/adhosts.conf > /dev/null | cat
+      ansible.builtin.raw: ls /etc/unbound/adhosts.conf 2> /dev/null | cat
       changed_when: false
       register: stat_result
 
@@ -58,11 +58,11 @@
             touch /etc/unbound/adhosts.conf;
             lbu ci;
             mv /tmp/adhosts.conf /etc/unbound/adhosts.conf
-          when: stat_result.stdout_lines|length == 0
+          when: stat_result.stdout_lines|length == 1
 
         - name: run local backup utility (lbu) if configured
           ansible.builtin.raw: lbu ci
-          when: stat_result.stdout_lines|length > 0
+          when: stat_result.stdout_lines|length == 0
 
     - name: check if reboot needed
       ansible.builtin.raw: lsof / 2>&1 | awk '$3=="(deleted)"' | cat
