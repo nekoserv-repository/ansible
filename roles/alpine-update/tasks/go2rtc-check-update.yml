@@ -11,7 +11,7 @@
       lbu_media: "{{ LBU_MEDIA.stdout.splitlines()[0] }}"
 
 - name: get local go2rtc version
-  ansible.builtin.raw: /media/{{ lbu_media }}/go2rtc -version | sed -E 's/[[:alpha:]|:(|[:space:]]//g'
+  ansible.builtin.raw: /media/{{ lbu_media }}/go2rtc -version | awk '{print($3)}'
   register: local_version
 
 - name: get remote go2rtc version
