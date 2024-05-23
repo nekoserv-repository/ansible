@@ -14,5 +14,4 @@ How to use :
   - ansible-playbook -i prod update.yml
   - ansible-playbook -i prod docker-rebuild.yml
   - ansible-playbook -i prod alpine/ssh-key.yaml
-  - ansible-playbook -i prod alpine/upgrade.yml --extra-vars NEW_VERSION="3.19"
-
+  - ansible-playbook -i prod alpine/upgrade.yml --extra-vars NEW_VERSION="3.20" --limit host.tld

@@ -1,6 +1,6 @@
 ---
 - name: kernel upgrade for alpine host(s)
-  hosts: dns1
+  hosts: alpine
   gather_facts: no
   serial: 1
 

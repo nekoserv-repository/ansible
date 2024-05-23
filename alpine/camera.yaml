@@ -6,7 +6,7 @@
 #   umount /dev/sda1
 ---
 - name: camera setup for alpine host(s)
-  hosts: camera
+  hosts: alpine
   gather_facts: no
   serial: 1
 

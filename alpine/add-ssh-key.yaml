@@ -1,6 +1,6 @@
 ---
 - name: add ssh keys to host(s)
-  hosts: dns
+  hosts: all
   gather_facts: no
   serial: 1
   vars:
