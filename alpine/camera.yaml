@@ -229,7 +229,7 @@
           ansible.builtin.raw: echo -e "streams:\n  cam\x3A    exec:/usr/local/bin/camera" > /etc/go2rtc.yaml
 
         - name: create go2rtc initscript
-          ansible.builtin.raw: echo -e "#!/sbin/openrc-run\nname=\"go2rtc daemon\"\ncommand_background=\"yes\"\ndepend() {\n    need net\n}\nstart() {\n    /media/{{ lbu_media }}/go2rtc -config /etc/go2rtc.yaml 2>&1 > /dev/null &\n}\nstop() {\n    pkill -x /media/{{ lbu_media }}/go2rtc | cat\n}" > /etc/init.d/go2rtc
+          ansible.builtin.raw: echo -e "#!/sbin/openrc-run\nname=\"go2rtc daemon\"\ncommand_background=\"yes\"\npidfile=\"/var/run/\${SVCNAME}.pid\"\ncommand=\"/media/mmcblk0p1/\${SVCNAME}\"\ncommand_args=\"-config /etc/go2rtc.yaml\"\n\ndepend() {\n    need net\n}\n\nstop_post() {\n    pkill -9 rpicam-vid\n    pkill -9 raspberrypi_ipa_proxy\n    eend 0\n}\n" > /etc/init.d/go2rtc
 
         - name: set chmod
           ansible.builtin.raw: chmod 0700 /etc/init.d/go2rtc
