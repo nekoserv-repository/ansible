@@ -214,7 +214,7 @@
           ansible.builtin.raw: |
             echo "#!/bin/sh" > /usr/local/bin/camera
             echo "pkill /usr/libexec/libcamera/raspberrypi_ipa_proxy" >> /usr/local/bin/camera
-            echo "exec rpicam-vid --nopreview -t 0 --width 1280 --height 720 --framerate 20 --inline -o - 2>/dev/null" >> /usr/local/bin/camera
+            echo "exec rpicam-vid --nopreview -t0 --width 1280 --height 720 --framerate 20 --inline -v0 -o-" >> /usr/local/bin/camera
 
         - name: chmod camera script
           ansible.builtin.raw: chmod 0700 /usr/local/bin/camera
