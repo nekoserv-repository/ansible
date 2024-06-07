@@ -108,6 +108,9 @@
             - name: usercfg.txt - enable camera
               ansible.builtin.raw: echo -e "dtoverlay=vc4-fkms-v3d\ncamera_auto_detect=1" >> /media/{{ lbu_media }}/usercfg.txt
 
+            - name: usercfg.txt - disable bluetooth
+              ansible.builtin.raw: echo "dtoverlay=disable-bt" >> /media/{{ lbu_media }}/usercfg.txt
+
         - name: fetch go2rtc
           block:
             - name: stop go2rtc
