@@ -1,0 +1,13 @@
+---
+- name: clean local repository of retrieved packages
+  apt:
+    clean: true
+
+- name: autoclean packages that could not be downloaded anymore
+  apt:
+    autoclean: true
+
+- name: autoremove useless packages and config files
+  apt:
+    autoremove: true
+    purge: true
