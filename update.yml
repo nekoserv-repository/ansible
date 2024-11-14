@@ -5,11 +5,11 @@
 - hosts: alpine
   gather_facts: no
   roles:
-    - alpine-update
+    - alpine/update/
 
 - hosts: debian
   roles:
-    - debian-update
+    - debian/update/
 
 
 ## reboot checks in serial
@@ -17,15 +17,15 @@
   gather_facts: no
   serial: 1
   roles:
-    - alpine-reboot
+    - alpine/reboot/
 
 - hosts: debian
   serial: 1
   roles:
-    - debian-reboot
+    - debian/reboot/
 
 
 ## clean old packages/config files
 - hosts: debian
   roles:
-    - debian-clean
+    - debian/clean/
