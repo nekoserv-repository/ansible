@@ -16,3 +16,6 @@
 
 - name: start go2rtc
   ansible.builtin.raw: rc-service go2rtc start
+
+- name: check if running properly
+  ansible.builtin.raw: pgrep go2rtc
