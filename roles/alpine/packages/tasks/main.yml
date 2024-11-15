@@ -1,0 +1,5 @@
+---
+- name: searching packages to install
+  include_tasks: "../packages/{{ item }}/main.yml"
+  loop: "{{ packages.keys() | list }}"
+  when: packages is defined

@@ -1,9 +1,13 @@
+## ALPINE ##
+############
 [alpine]
 node[1:5].local
 
-[camera]
+[cam]
 node[1:5].local
 
+## DEBIAN ##
+############
 [debian]
 node[1:10].local
 

@@ -8,7 +8,7 @@
 
 - name: set $LBU_MEDIA fact
   set_fact:
-      lbu_media: "{{ LBU_MEDIA.stdout.splitlines()[0] }}"
+    lbu_media: "{{ LBU_MEDIA.stdout.splitlines()[0] }}"
 
 - name: get local go2rtc version
   ansible.builtin.raw: /media/{{ lbu_media }}/go2rtc -version | awk '{print($3)}'
@@ -20,4 +20,4 @@
 
 - name: go2rtc update
   when: local_version != remote_version
-  ansible.builtin.include_tasks: go2rtc-update.yml
+  ansible.builtin.include_tasks: "roles/{{ role_name }}/{{ item }}/update.yml"

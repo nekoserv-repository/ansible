@@ -6,6 +6,7 @@
   gather_facts: no
   roles:
     - alpine/update/
+    - alpine/packages/
 
 - hosts: debian
   roles:
