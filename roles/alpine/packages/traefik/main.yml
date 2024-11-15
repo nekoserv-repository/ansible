@@ -1,0 +1,12 @@
+---
+- name: get local traefik version
+  ansible.builtin.raw: traefik version | awk '/Version/ {print($2)}'
+  register: local_version
+
+- name: get remote traefik version
+  ansible.builtin.raw: wget -q "https://api.github.com/repos/traefik/traefik/releases/latest" -O- | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | awk '{print(substr($1,2))}'
+  register: remote_version
+
+- name: traefik update
+  when: local_version != remote_version
+  ansible.builtin.include_tasks: "roles/{{ role_name }}/{{ item }}/update.yml"

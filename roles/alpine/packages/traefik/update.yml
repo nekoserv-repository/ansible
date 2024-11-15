@@ -1,0 +1,27 @@
+---
+- name: set version
+  set_fact:
+    version: "{{ remote_version.stdout.splitlines()[0] }}"
+
+- name: get traefik path
+  ansible.builtin.raw: dirname $(which traefik)
+  register: which_traefik
+
+- name: set traefik path
+  set_fact:
+    traefik_path: "{{ which_traefik.stdout.splitlines()[0] }}"
+
+- name: stop traefik
+  ansible.builtin.raw: rc-service traefik stop
+
+- name: download traefik v{{ version }}
+  ansible.builtin.raw: wget https://github.com/traefik/traefik/releases/download/v{{ version }}/traefik_v{{ version }}_linux_amd64.tar.gz -O- | tar -C {{ traefik_path }} -zx traefik
+
+- name: sync
+  ansible.builtin.raw: sync
+
+- name: start traefik
+  ansible.builtin.raw: rc-service traefik start
+
+- name: check if running properly
+  ansible.builtin.raw: pgrep traefik

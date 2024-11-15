@@ -6,6 +6,9 @@ node[1:5].local
 [cam]
 node[1:5].local
 
+[rp]
+node[1:3].local
+
 ## DEBIAN ##
 ############
 [debian]
