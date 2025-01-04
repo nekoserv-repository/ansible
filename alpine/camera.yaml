@@ -153,10 +153,10 @@
               ansible.builtin.raw: rm -f /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/*.apk;
 
             - name: download rpicam-lib
-              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.2.0.20240418-r0.apk -P /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/
+              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-lib-0.3.2.20241119-r2.apk -P /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/
 
             - name: download rpicam-apps
-              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.4.4-r0.apk -P /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/
+              ansible.builtin.raw: wget https://github.com/nekoserv-repository/packages/raw/main/alpinelinux/rpicam-apps-1.5.3-r0.apk -P /media/{{ lbu_media }}/local-apks-repo/{{ arch }}/
 
             - name: create APK index
               block:
