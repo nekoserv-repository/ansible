@@ -1,13 +1,19 @@
 ---
+- name: set package facts
+  set_fact:
+    dst_path: "/media/{{ lbu_media }}/go2rtc"
+    local_version: "{{ local_version.stdout.splitlines()[0] }}"
+    remote_version: "{{ remote_version.stdout.splitlines()[0] }}"
+
 - name: remount,rw for /media/{{ lbu_media }}
   ansible.builtin.raw: mount -oremount,rw /media/{{ lbu_media }}
 
 - name: stop go2rtc
   ansible.builtin.raw: rc-service go2rtc stop
 
-- name: "download go2rtc v{{ remote_version.stdout.splitlines()[0] }}"
+- name: update go2rtc {{ local_version }} -> {{ remote_version }}
   ansible.builtin.raw: |
-    wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ remote_version.stdout.splitlines()[0] }}/go2rtc_linux_armv6 -O /media/{{ lbu_media }}/go2rtc
+    wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ remote_version }}/go2rtc_linux_armv6 -O {{ dst_path }}
     sync
 
 - name: remount,ro for /media/{{ lbu_media }}

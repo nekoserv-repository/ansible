@@ -3,14 +3,15 @@
   ansible.builtin.raw: dirname $(which traefik)
   register: which_traefik
 
-- name: set facts - traefik_path, version
+- name: set package facts
   set_fact:
-    traefik_path: "{{ which_traefik.stdout.splitlines()[0] }}"
-    version: "{{ remote_version.stdout.splitlines()[0] }}"
+    dst_path: "{{ which_traefik.stdout.splitlines()[0] }}"
+    local_version: "{{ local_version.stdout.splitlines()[0] }}"
+    remote_version: "{{ remote_version.stdout.splitlines()[0] }}"
 
-- name: download traefik v{{ version }}
+- name: update traefik {{ local_version }} -> {{ remote_version }}
   ansible.builtin.raw: |
-    wget https://github.com/traefik/traefik/releases/download/v{{ version }}/traefik_v{{ version }}_linux_amd64.tar.gz -O- | tar -C {{ traefik_path }} -zx traefik
+    wget https://github.com/traefik/traefik/releases/download/v{{ remote_version }}/traefik_v{{ remote_version }}_linux_amd64.tar.gz -O- | tar -C {{ dst_path }} -zx traefik
     sync
 
 - name: restart traefik
