@@ -6,10 +6,9 @@
   ansible.builtin.raw: rc-service go2rtc stop
 
 - name: "download go2rtc v{{ remote_version.stdout.splitlines()[0] }}"
-  ansible.builtin.raw: wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ remote_version.stdout.splitlines()[0] }}/go2rtc_linux_armv6 -O /media/{{ lbu_media }}/go2rtc
-
-- name: sync
-  ansible.builtin.raw: sync
+  ansible.builtin.raw: |
+    wget https://github.com/AlexxIT/go2rtc/releases/download/v{{ remote_version.stdout.splitlines()[0] }}/go2rtc_linux_armv6 -O /media/{{ lbu_media }}/go2rtc
+    sync
 
 - name: remount,ro for /media/{{ lbu_media }}
   ansible.builtin.raw: mount -oremount,ro /media/{{ lbu_media }}
